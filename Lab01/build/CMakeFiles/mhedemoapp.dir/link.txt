@@ -1,0 +1,1 @@
+/usr/bin/g++  -Wall -Wextra -pthread -ggdb -rdynamic CMakeFiles/mhedemoapp.dir/src/main.cpp.o -o mhedemoapp 
