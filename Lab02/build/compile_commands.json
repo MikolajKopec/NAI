@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/home/kali/Desktop/NAI/Lab02/build",
+  "command": "/usr/bin/clang++-13  -I/home/kali/Desktop/NAI/Lab02/src  -Wall -Wextra -pthread -ggdb -std=c++17 -o CMakeFiles/mhedemoapp.dir/src/main.cpp.o -c /home/kali/Desktop/NAI/Lab02/src/main.cpp",
+  "file": "/home/kali/Desktop/NAI/Lab02/src/main.cpp"
+}
+]
