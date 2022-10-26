@@ -7,7 +7,6 @@
 #include <cmath>
 #include <time.h>
 std::mt19937 mt_generator((std::random_device())());
-
 using domain_t = std::vector<double>;
 std::ostream &operator<<(std::ostream &o, domain_t &d) {
     o << d[0] << " " << d[1];
@@ -36,11 +35,7 @@ auto himmelblaus_f = [] (domain_t x) {
     return result;
 };
 
-// Dziedzina = -10<= x,y <= 10; Minimum = -19.2085:
-// (8.05502,9.66459)
-// (-8.05502,9.66459)
-// (8.05502,-9.66459)
-// (-8.05502,-9.66459)
+
 
 auto holder_table_f = [] (domain_t x) { return - fabs(sin(x[0]) * cos(x[1]) * exp(fabs(1-(sqrt(pow(x[0],2) + pow(x[1],2)) / M_PI))));};
 
@@ -63,26 +58,14 @@ double get_random_cud_variable(domain_t point){
     return f_u;
 };
 
-auto get_random_point = []() -> domain_t {
- std::uniform_real_distribution<double> distr(-10, 10);
+auto get_random_point = [](domain_t min_max) -> domain_t {
+ std::uniform_real_distribution<double> distr(min_max[0],min_max[1]);
  return {distr(mt_generator), distr(mt_generator)};
  };
  
- auto get_close_points = [](domain_t p0) -> std::vector<domain_t> {
- std::vector<domain_t> ret;
- for (int i = 0; i <p0.size(); i++) {
- domain_t v = p0;
- v[i] += 1.0 / 128.0;
- ret.push_back(v);
- v = p0;
- v[i] -= 1.0 / 128.0;
- ret.push_back(v);
- }
- return ret;
- };
- auto get_close_points_random = [](domain_t p0,domain_t domain_x) -> std::vector<domain_t> {
- std::uniform_real_distribution<double> distr(domain_x[0],domain_x[1]);
- return {{distr(mt_generator), distr(mt_generator)}};
+ auto get_close_points_random = [](domain_t p0) -> std::vector<domain_t> {
+    std::normal_distribution<double> distr(0, 1);
+    return {{p0[0] + distr(mt_generator), p0[1]+distr(mt_generator)}};
  };
 double cud_v_exp(double best, double neighbour, int iter) {
     double upper = -1 * abs(neighbour - best);
@@ -93,23 +76,17 @@ double cud_v_exp(double best, double neighbour, int iter) {
 
 domain_t simulated_annealing(domain_t domain,const std::function<double(domain_t)> &f,int iterator){
     std::uniform_real_distribution<double> dist(domain[0], domain[1]);
-    domain_t best_point = get_random_point();
-    // std::vector<domain_t> solution_array = {best_point};
+    domain_t best_point = get_random_point(domain);
     double cud_v = get_random_cud_variable(best_point);
     for (int i = 0; i<iterator;i++){
-        // if(i%1000 == 0){
-        // std::cout<<"best_point: "<<best_point<<std::endl;
-        // }
-        auto close_points = get_close_points_random(best_point,domain);
+        auto close_points = get_close_points_random(best_point);
          auto best_neighbour = *std::min_element(close_points.begin(), close_points.end(),[f](auto a, auto b) { return f(a) > f(b); });
-        if(f(best_neighbour)>=f(best_point)){
+        if(f(best_neighbour)<=f(best_point)){
             best_point = best_neighbour;
-            // solution_array.push_back(best_neighbour);
         }
         else{
             if(cud_v < cud_v_exp(f(best_point),f(best_neighbour),i)){
                 best_point = best_neighbour;
-                // solution_array.push_back(best_neighbour);
             }
         }
     }
@@ -121,11 +98,18 @@ domain_t simulated_annealing(domain_t domain,const std::function<double(domain_t
 
 
 int main() {
-    domain_t res = simulated_annealing({-10,10},holder_table_f,100000);
-    std::cout<<res[0]<<" "<< res[1]<<std::endl;
-    domain_t res2 = simulated_annealing({-10,10},booth_f,10000);
+    // Dziedzina = -10<= x,y <= 10; Minimum = -19.2085:
+// (8.05502,9.66459)
+// (-8.05502,9.66459)
+// (8.05502,-9.66459)
+// (-8.05502,-9.66459)
+    // domain_t res = simulated_annealing({-10,10},holder_table_f,10);
+    // std::cout<<res[0]<<" "<< res[1]<<" = "<<holder_table_f(res)<<std::endl;
+    domain_t res2 = simulated_annealing({-10,10},booth_f,100000);
     std::cout<<res2[0]<<" "<< res2[1]<<std::endl;
-    domain_t res3 = simulated_annealing({-4.5,4.5},baele_f,10000);
+    //1,3
+    domain_t res3 = simulated_annealing({-4.5,4.5},baele_f,100000);
     std::cout<<res3[0]<<" "<< res3[1]<<std::endl;
+    //3,0.5
     return 0;
 }
