@@ -1,322 +1,176 @@
 #include <iostream>
 #include <vector>
-#include <algorithm>
-#include <math.h>
+#include <functional>
+#include <random>
+std::random_device rd;
+std::mt19937 mt_generator(rd());
+using domain_t = std::vector<double>;
 
-struct light_up {
-    int size;
-    std::vector<int> board;
-    std::vector<int> get_row(int x){
-        int index = 0;
-        std::vector<int> result(size);
-        for(int i = (x*size);i<(x+1)*size;i++){
-            result[index] = board.at(i);
-            index++;
-        }
-        return result;
-    }
-    void change_field(int field_index,int value){
-        board[field_index] = value;
-    }
-    std::vector<int> get_column(int x){
-        std::vector<int> result(size);
-        int index = 0;
-        for(int i=x;i<=(size*size-(size-x));i=i+size){
-            result[index] = board.at(i);
-            index++;
-        }
-        return result;
-    }
+auto himmelblaus_f = [] (domain_t x) {
+    double left_inner = (pow(x[0],2) + x[1] - 11);
+    double left = pow(left_inner,2);
+    double right_inner = (x[0] + pow(x[1],2) - 7);
+    double right= pow(right_inner,2); 
+    double result = right + left;
+    // double result = pow((pow(x[0],2) + x[1] + 11),2) + pow((x[0] + pow(x[1],2) + 7),2);
+    return result;
 };
 
-std::ostream &operator<<(std::ostream &o, const light_up &puzzle){
-    using namespace std;
-    for (int y = 0; y<puzzle.size;y++){
-        for (int x = 0; x<puzzle.size;x++) {
-            auto &val = puzzle.board[y*puzzle.size+x];
-            string display_ch;
-            switch (val) {
-                case -4:
-                    display_ch = 'o';
-                    break;
-                case -3:
-                    display_ch = '#';
-                    break;
-                case -2:
-                    display_ch = '*';
-                    break;
-                default:
-                    display_ch = to_string(val);
-                    break;
 
+auto genetic_algorithm = [](
+        auto initial_population, auto fitness, auto term_condition,
+        auto selection, double p_crossover,
+        auto crossover, double p_mutation,  auto mutation) {
+    using namespace std;
+    uniform_real_distribution<double> uniform(0.0,1.0);
+    auto population = initial_population;
+    vector<double> population_fit = fitness(population);
+    while (!term_condition(population,population_fit)) {
+        auto parents_indexes = selection(population_fit);
+        decltype(population) new_population;
+        for (int i = 0 ; i < parents_indexes.size(); i+=2) {
+            decltype(initial_population) offspring = {population[i],population[i+1]};
+            if (uniform(mt_generator) < p_crossover) {
+                offspring = crossover(offspring);
             }
-            o<< "\t" <<display_ch;
+            for (auto chromosome : offspring) new_population.push_back(chromosome);
         }
-        o <<endl;
+        for (auto & chromosome : new_population) {
+            chromosome = mutation(chromosome,p_mutation);
+        }
+        population = new_population;
+        population_fit = fitness(population);
     }
+    return population;
+};
+using chromosome_t = std::vector<int>;
+using phenotype_t = std::vector<double>;
+using population_t = std::vector<chromosome_t>;
 
-    return o;
-}
-bool check_if_bulb_is_alone(std::vector<int> row){
-    using namespace std;
-    bool is_bulb = false;
-    for (int field:row) {
-        if(is_bulb && field==-4){
-            return false;
-        }else if(is_bulb && field>=0){
-            is_bulb = false;
-        }
-        if (field==-4){
-            is_bulb = true;
-        }
 
+double bin_to_double(std::vector<int> chromosome){
+    // for(auto z : chromosome){
+        // std::cout<<z;
+    // }
+    // std::cout<<" = in \n";
+    int sign = -1;
+    double integer_part = 0;
+    long double fractional_part = 0;
+    if (chromosome[0] == 0 ){
+        sign = 1;
     }
-    return true;
-}
-bool check_if_bulbs_are_alone(light_up puzzle){
-    for(int i=0;i<puzzle.size;i++){
-        bool bulbs_in_row = check_if_bulb_is_alone(puzzle.get_row(i));
-        bool bulbs_in_columns = check_if_bulb_is_alone(puzzle.get_column(i));
-        if(bulbs_in_row == false or bulbs_in_columns == false){
-            return false;
-        }
-    }
-    return true;
-}
-
-bool check_field_neighbors(int field,light_up puzzle,int field_index){
-    int board_size = puzzle.size;
-    int number_of_neighbors = field;
-    if(field_index<board_size){
-        // std::cout<<"up niedostepne"<<std::endl;
-    }else{
-        if(puzzle.board[field_index-board_size] == -4){
-            number_of_neighbors--;
-        }
-    }
-    if(field_index + board_size>=board_size*board_size){
-        // std::cout<<"down niedostepne"<<std::endl;
-    }else{
-        if(puzzle.board[field_index+board_size] == -4){
-            number_of_neighbors--;
-        }
-    }
-    if(field_index % board_size == 0 ){
-        // std::cout<<"left niedostepne"<<std::endl;
-    }else{
-        if(puzzle.board[field_index-1] == -4){
-            number_of_neighbors--;
-        }
-    }
-    if(field_index% (board_size) == board_size-1 ){
-        // std::cout<<"right niedostepne"<<std::endl;
-    }else{
-        if(puzzle.board[field_index+1] == -4){
-            number_of_neighbors--;
-        }
-    }
-    // std::cout<<number_of_neighbors;
-    if(number_of_neighbors==0 || field==5){
-        return true;
-    }else{
-        return false;
-    }
-
-}
-
-bool check_if_bulbs_are_next_to_squares(light_up puzzle){
-    bool result;
-    for(int i = 0;i<puzzle.board.size();i++){
-        int field = puzzle.board[i];
-        if(field>0){
-            result = check_field_neighbors(field,puzzle,i);
-            // std::cout<<"Dla kwadratu o indexie: "<< i<<" o wymaganiu: "<<field <<" wynik sasiadow (true/false) = "<<result<<std::endl;
-            if (!result){
-                return false;
+    for(int i = 1;i<chromosome.size();i++){
+        if(i<=5){
+            // std::cout<<"int_"<<chromosome[i]<<std::endl;
+            if(chromosome[i] == 1){
+            integer_part = integer_part + (pow(2,i-1));
+            }
+        }if(i>=6){
+            if(chromosome[i] == 1){
+                fractional_part = fractional_part + (pow(2,i-6));
             }
         }
-
     }
-    return true;
-}
-
-bool check_if_all_fields_are_light_up(light_up puzzle){
-    for(int field : puzzle.board){
-        if(field == -3){
-            // std::cout<<"Pozostały niezapalone pola"<<std::endl;
-            return false;
-        }
-    }
-    return true;
-}
-bool evaluate_puzzle(light_up &basic_board,light_up &puzzle){
-    for(int i = 0; i<basic_board.size * basic_board.size;i++){
-        if (basic_board.board[i]>=0){
-        puzzle.board[i] = basic_board.board[i];
-        }
-    }
-    if(check_if_bulbs_are_alone(puzzle) and
-        check_if_bulbs_are_next_to_squares(puzzle) and
-        check_if_all_fields_are_light_up(puzzle)){
-        std::cout<<"Puzzle poprawne"<<std::endl;
-        return true;
-    }else{
-        std::cout<<"Puzzle niepoprawne"<<std::endl;
-        return false;
-    }
-}
-
-int check_row(int i,int puzzle_size){
-    return i/puzzle_size;
-}
-int check_column(int i,int puzzle_size){
-    return i%puzzle_size;
-}
-
-void light_up_field(light_up &puzzle,int iterator){
-        if (puzzle.board[iterator] == -3){
-            puzzle.change_field(iterator,-2);
-        }
+    long int temp_fract = fractional_part;
+    int length = 1;
+    while(temp_fract/= 10)
+        // std::cout<<temp_fract<<std::endl;
+        length++;
+    // std::cout<<"fractional_part: "<<fractional_part<<std::endl;
+    fractional_part = fractional_part * pow(10,(-length));
+    // std::cout<<"sign: "<<sign<<std::endl;
+    // std::cout<<"integer_part: "<<integer_part<<std::endl;
+    // std::cout<<"fractional_part: "<<fractional_part<<std::endl;
+    return sign * (integer_part + fractional_part);
 
 }
-void light_row(light_up &puzzle,int bulb_index){
-    // std::cout<<"########\n"<<puzzle;
-    int row = check_row(bulb_index,puzzle.size);
-    for(int i = bulb_index; i<puzzle.size*(row+1);i++){
-        light_up_field(puzzle,i);
-        if (puzzle.board[i]>=0){
-            break;
+
+phenotype_t decode_f(chromosome_t chromosome){
+    std::vector<int> half_chromosome_X;
+    std::vector<int> half_chromosome_Y;
+    for(int i = 0; i<chromosome.size();i++){
+        if(i<=49){
+            half_chromosome_X.push_back(chromosome[i]);
+        }else{
+            half_chromosome_Y.push_back(chromosome[i]);
         }
     }
-    for(int i = bulb_index;i>=puzzle.size*row;i--){
-        light_up_field(puzzle,i);
-        if (puzzle.board[i]>=0){
-            break;
-        }
-    }
-    // std::cout<<"########\n"<<puzzle;
+    double x = bin_to_double(half_chromosome_X);
+    double y = bin_to_double(half_chromosome_Y);
+    return {x,y};
 }
-void light_column(light_up &puzzle,int bulb_index){
-    int column = check_column(bulb_index,puzzle.size);
-    int i = bulb_index;
-    for(int i = bulb_index;i<(puzzle.size*puzzle.size) - puzzle.size + column;i=i+puzzle.size){
-        light_up_field(puzzle,i);
-        if (puzzle.board[i]>=0){
-            break;
+
+
+std::vector<double> fintess_function(population_t pop){
+    for(chromosome_t chromosome : pop){
+        phenotype_t phenotype =decode_f(chromosome);
+        long double res = himmelblaus_f(phenotype);
+        if (res<0){
+            res = res*-1;
         }
+        int temp_res = res;
+        int length = 1;
+            while(temp_res/= 10)
+        // std::cout<<temp_fract<<std::endl;
+            length++;
+
+        std::cout<<"Ocena rozwizania to "<<1 - (res*pow(10,-length))<<"\n";
     }
-    for(int i = bulb_index;i>column;i=i-puzzle.size){
-        light_up_field(puzzle,i);
-        if (puzzle.board[i]>=0){
-            break;
-        }
-    }
+    return {};
 }
-void change_to_light_up(light_up &puzzle){
-    int i = 0;
-    for (auto field : puzzle.board){
-        if (field == -4){
-            light_row(puzzle,i);
-            light_column(puzzle,i);
-        }
-        i++;
-    }
+std::vector<int> selection_empty(std::vector<double> fitnesses) {
+    return {};
 }
+std::vector<chromosome_t > crossover_empty(std::vector<chromosome_t > parents) {
+    return parents;
+}
+chromosome_t mutation_empty(chromosome_t parents, double p_mutation) {
+    return parents;
+}
+auto goldstine_f = [](domain_t x){
+    return (1 + pow(x[0] +x[1] +1,2) * (19-14*x[0]+3*pow(x[0],2) - 14*x[1] + 6*x[0] * x[1] + 3*pow(x[1],2))) * (30 +pow(2*x[0] - 3*x[1],2) * (18-32 * x[0] +12 * pow(x[0],2) + 48 * x[1] - 36 * x[0] *x[1] + 27 * pow(x[1],2)));};
+
+
+
+chromosome_t create_chromosome(int size){
+    std::uniform_int_distribution<int> dist(0,1);
+    double random = 0;
+    chromosome_t result;
+    for(int i=0; i<size;i++){
+        random = dist(mt_generator);
+        result.push_back(random);
+    }
+    return result;
+}
+
+
+
 int main() {
     using namespace std;
-    // -4 = bulb
-    // -3 = nieoświetlone
-    // -2 = oświetlone
-    //  0,1,2,3,4 = czarne z liczba
-    // 5 = czarny bez liczby
-    light_up puzzle {
-            7,
-            {
-                    -3,-3,5,-3,-3,-3,-3,
-                    -3,1,-3,-3,-3,2,-3,
-                    -3,-3,-3,-3,-3,-3,5,
-                    -3,-3,-3,1,-3,-3,-3,
-                    2,-3,-3,-3,-3,-3,-3,
-                    -3,4,-3,-3,-3,2,-3,
-                    -3,-3,-3,-3,5,-3,-3
-            }};
-    light_up puzzle_resolve {
-        7,
-        {
-            -2,-4,5,-2,-2,-4,-2,
-            -2,1,-2,-4,-2,2,-4,
-            -4,-2,-2,-2,-2,-2,5,
-            -2,-2,-2,1,-4,-2,-2,
-            2,-4,-2,-2,-2,-2,-2,
-            -4,4,-4,-2,-2,2,-4,
-            -2,-4,-2,-2,5,-4,-2
-        }
-    };
-    light_up puzzle_resolve_without_light {
-        7,
-        {
-            -3,-4,5,-3,-3,-4,-3,
-            -3,1,-3,-4,-3,2,-4,
-            -4,-3,-3,-3,-3,-3,5,
-            -3,-3,-3,1,-4,-3,-3,
-            2,-4,-3,-3,-3,-3,-3,
-            -4,4,-4,-3,-3,2,-4,
-            -3,-4,-3,-3,5,-4,-3
-        }
-    };
-    light_up test = {4,{
-        2,-3,-3,-3,
-        -3,-3,-3,-3,
-        -3,-3,-3,2,
-        5,-3,-3,-3,
-        -3,-3,-3,-3
-    }};
-
-    light_up resolve_test = {4,{
-        -3,-4,-3,-3,
-        -4,-3,-3,-3,
-        -3,-3,-4,-3,
-        -3,-3,-3,-4
-    }};
-    // change_to_light_up(resolve_test);
-    // evaluate_puzzle(test,resolve_test);
-    // cout<<test;
-    int arr[16] = { };
-    std::fill_n(arr, 16, -3);
-    // arr[1] = -4;
-    // arr[4] = -4;
-    // arr[10] = -4;
-    // arr[15] = -4;
-    // std::vector<int> v(arr, arr + sizeof arr / sizeof arr[0]);
-    // light_up test_111 = {4,v};
-    // change_to_light_up(test_111);
-    // evaluate_puzzle(test,test_111);
-    // cout<<test_111;
-    bool result_find = false;
-    for (int i=15; i>=0;i--){
-        arr[i] = -4;
-
-        sort(arr, arr + 3);
-
-    do { 
-        std::vector<int> v(arr, arr + sizeof arr / sizeof arr[0]);
-        light_up xzy = {4,v};
-        change_to_light_up(xzy);
-        if(evaluate_puzzle(test,xzy) == true){
-            cout<<xzy;
-            result_find = true;
-            break;
-        }
-        for(int each : v){
-            cout << each;
-        }
-        cout<<"\n";
-    } while (next_permutation(arr, arr + 16));
-    if (result_find == true){
-        
-        break;
-    }
-    }
-
+//    population_t population = {{1,0,1,0,1,0,1}, {1,0,1,0,1,0,1}};
+//    auto result = genetic_algorithm(population,
+//                                    fintess_function,
+//                                    [](auto a, auto b){return true;},
+//                                    selection_empty, 1.0,
+//                                    crossover_empty,
+//                                    0.01, mutation_empty);
+//    for (chromosome_t chromosome: result) {
+//        cout << "[";
+//        for (int p: chromosome) {
+//            cout << p;
+//        }
+//        cout << "] ";
+//    }
+//    cout << endl;
+    chromosome_t my_geno(100+((2440%10) * 2));
+    population_t pop;
+    pop.push_back(create_chromosome(my_geno.size()));
+    pop.push_back(create_chromosome(my_geno.size()));
+    pop.push_back(create_chromosome(my_geno.size()));
+    // phenotype_t phenotype = decode_f(my_geno);
+    fintess_function(pop);
+    // std::cout<<int(himmelblaus_f({3,2});
+    // bin_to_double({0,1,1,0,0,1,1,1,1,0,1,1,0,1,1});
+    // cout<<"("<<phenotype[0]<<","<<phenotype[1]<<")";
     return 0;
 }
