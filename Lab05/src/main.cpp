@@ -57,6 +57,7 @@ chromosome_t create_chromosome(int size){
 }
 struct chromosome {
     int chromosome_size;
+//    chromosome_t full;
     chromosome_t left_part;
     chromosome_t right_part;
 public:
@@ -66,7 +67,8 @@ chromosome::chromosome(int size){
     chromosome_size = size;
     left_part = create_chromosome(size/2);
     right_part = create_chromosome(size/2);
-
+//    full.insert(full.end(),left_part.begin(),left_part.end());
+//    full.insert(full.end(),right_part.begin(),left_part.end());
 }
 
 std::ostream &operator<<(std::ostream &o,const chromosome &chromosome){
@@ -74,7 +76,6 @@ std::ostream &operator<<(std::ostream &o,const chromosome &chromosome){
     for(auto x : chromosome.left_part){
         o<<x;
     }
-    o<<std::endl;
     for(auto x : chromosome.right_part){
         o<<x;
     }
@@ -86,7 +87,7 @@ using population_t = std::vector<chromosome>;
 
 double bin_to_double(std::vector<int> chromosome,int integer_part_lenght){
     // for(auto z : chromosome){
-        // std::cout<<z;
+    // std::cout<<z;
     // }
     // std::cout<<" = in \n";
     int sign = -1;
@@ -99,7 +100,7 @@ double bin_to_double(std::vector<int> chromosome,int integer_part_lenght){
         if(i<=integer_part_lenght){
             // std::cout<<"int_"<<chromosome[i]<<std::endl;
             if(chromosome[i] == 1){
-            integer_part = integer_part + (pow(2,i-1));
+                integer_part = integer_part + (pow(2,i-1));
             }
         }if(i>=integer_part_lenght+1){
             if(std::to_string(fractional_part).length()>10){
@@ -131,7 +132,7 @@ phenotype_t decode_f(chromosome chromosome){
     return {x,y};
 }
 
-std::vector<double> fintess_function(population_t pop,domain_t domain){
+std::vector<double> fitnnes_function(population_t pop, domain_t domain){
     std::vector<double> fitness_result;
     for(chromosome chromosome : pop){
         bool not_in_domain = false;
@@ -152,8 +153,9 @@ std::vector<double> fintess_function(population_t pop,domain_t domain){
             }
         }
         std::cout<<"Ocena rozwizania to "<<1000 - res<<"\n";
+        std::cout<<chromosome;
         fitness_result.push_back(1000 - res);
-        }
+    }
     return fitness_result;
 }
 //chromosome_t  one_point_crossing(std::vector<chromosome_t> parents) {
@@ -180,30 +182,66 @@ auto goldstine_f = [](domain_t x){
 
 
 
-chromosome one_point_crossover(chromosome chromosome){
-    std::uniform_int_distribution<int> dist (0,chromosome.chromosome_size/2-1);
-    auto start = chromosome.left_part.begin();
+population_t one_point_crossover(chromosome chromosome1 ,chromosome chromosome2){
+    std::uniform_int_distribution<int> dist (0,chromosome1.chromosome_size);
     int slice_point = dist(mt_generator);
-    auto end = chromosome.left_part.begin() + slice_point;
-    std::vector<int> helper(slice_point);
-    copy(start,end,helper.begin());
     std::cout<<slice_point<<std::endl;
-    std::cout<<chromosome<<std::endl;
-    // for(auto x : helper){
-    //     std::cout<<x;
-    // }
-    for(int i = 0;i=slice_point;i++){
-        std::swap(chromosome.left_part[i],chromosome.right_part[i]);
+    for(int i = slice_point;i<chromosome1.chromosome_size;i++){
+        if(i>=50){
+            std::swap(chromosome1.right_part[i-50],chromosome2.right_part[i-50]);
+        }else{
+            std::swap(chromosome1.left_part[i],chromosome2.left_part[i]);
+        }
     }
-    std::cout<<chromosome<<std::endl;
-    return chromosome;
+    return {chromosome1,chromosome2};
 }
 
+chromosome prob_mutation(chromosome chromosome1,int probability){
+    std::uniform_int_distribution<int> distribution(1, 100);
+    for(int i=0; i < chromosome1.chromosome_size; i++){
+    int value=distribution(mt_generator);
+        if(value < probability){
+            if(i>=50){
+                if(chromosome1.right_part[i-50] == 0){
+                    chromosome1.right_part[i-50]= 1;
+                }else{
+                    chromosome1.right_part[i-50] = 0;
+                }
+            }else{
+                if(chromosome1.left_part[i] == 0){
+                    chromosome1.left_part[i]= 1;
+                }else{
+                    chromosome1.left_part[i] = 0;
+                }
+            }
+        }
+    }
+    return chromosome1;
+}
+int roulette(std::vector<double> res_for_pop){
+    double roulette_wheel = 0;
+    for(auto x : res_for_pop){
+        roulette_wheel = roulette_wheel+x;
+    }
+    std::uniform_real_distribution<double> dist(0.0,roulette_wheel);
+    double val = dist(mt_generator);
+    double h = 0;
+//    std::cout<<val<<std::endl;
+//    std::cout<<roulette_wheel<<std::endl;
+    for(int i=0;i<res_for_pop.size();i++){
+        h = h+res_for_pop[i];
+//        std::cout<<h<<std::endl;
+        if(h>val){
+            return i;
+        }
+    }
+
+}
 int main() {
     using namespace std;
 //    population_t population = {{1,0,1,0,1,0,1}, {1,0,1,0,1,0,1}};
 //    auto result = genetic_algorithm(population,
-//                                    fintess_function,
+//                                    fitnnes_function,
 //                                    [](auto a, auto b){return true;},
 //                                    selection_empty, 1.0,
 //                                    crossover_empty,
@@ -219,16 +257,23 @@ int main() {
     chromosome_t my_geno(100+((2440%10) * 2));
     population_t pop;
     chromosome chromosome1(100);
-    chromosome chromosome2(100);
-    chromosome chromosome3(100);
-    chromosome chromosome4(100);
-    // pop.push_back(chromosome1);
-    // pop.push_back(chromosome2);
-    // pop.push_back(chromosome3);
-    // pop.push_back(chromosome4);
-    one_point_crossover(chromosome1);
+//    chromosome chromosome2(100);
+//    chromosome chromosome3(100);
+//    chromosome chromosome4(100);
+     pop.push_back(chromosome1);
+//     pop.push_back(chromosome2);
+//     pop.push_back(chromosome3);
+//     pop.push_back(chromosome4);
+//    population_t new_pop = one_point_crossover(chromosome1,chromosome2);
+    chromosome new_chromosome = prob_mutation(chromosome1,100);
+//    pop.push_back(new_chromosome);
+//    std::cout<<chromosome1;
+//    std::cout<<new_chromosome;
+    std::vector<double> fittnes_results_for_pop = fitnnes_function(pop, {-5, 5});
+    std::vector<double> fittnes_results_for_new_pop = fitnnes_function(new_pop,{-5,5});
+//    chromosome the_choosen_one = pop[roulette(fittnes_results_for_pop)];
+//    fitnnes_function({the_choosen_one},{-5,5});
     // phenotype_t phenotype = decode_f(my_geno);
-    // std::vector<double> fittnes_results_for_pop = fintess_function(pop,{-5,5});
     // std::cout<<int(himmelblaus_f({3,2});
     // bin_to_double({0,1,1,0,0,1,1,1,1,0,1,1,0,1,1});
     // cout<<"("<<phenotype[0]<<","<<phenotype[1]<<")";
