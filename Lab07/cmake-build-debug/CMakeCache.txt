@@ -119,7 +119,7 @@ CMAKE_INSTALL_PREFIX:PATH=C:/Program Files (x86)/Lab07
 CMAKE_LINKER:FILEPATH=C:/Programy/CLion 2022.3/bin/mingw/bin/ld.exe
 
 //make program
-CMAKE_MAKE_PROGRAM:FILEPATH=C:/Programy/CLION2~1.3/bin/ninja/win/ninja.exe
+CMAKE_MAKE_PROGRAM:FILEPATH=C:/Programy/CLion 2022.3/bin/ninja/win/ninja.exe
 
 //Flags used by the linker during the creation of modules during
 // all build types.
@@ -249,7 +249,7 @@ Lab07_IS_TOP_LEVEL:STATIC=ON
 Lab07_SOURCE_DIR:STATIC=C:/Users/mikol/Desktop/NAI/Lab07
 
 //The directory containing a CMake configuration file for OpenCV.
-OpenCV_DIR:PATH=OpenCV_DIR-NOTFOUND
+OpenCV_DIR:PATH=C:/Users/mikol/Desktop/NAI/Lab07/opencv-4.x/cmake-build-release
 
 
 ########################
@@ -409,7 +409,7 @@ CMAKE_STRIP-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_VERBOSE_MAKEFILE
 CMAKE_VERBOSE_MAKEFILE-ADVANCED:INTERNAL=1
 //Details about finding OpenCV
-FIND_PACKAGE_MESSAGE_DETAILS_OpenCV:INTERNAL=[C:/Users/mikol/Desktop/NAI/Lab07/opencv-4.x/cmake-build-debug][v4.6.0()]
+FIND_PACKAGE_MESSAGE_DETAILS_OpenCV:INTERNAL=[C:/Users/mikol/Desktop/NAI/Lab07/opencv-4.x/cmake-build-release][v4.6.0()]
 //linker supports push/pop state
 _CMAKE_LINKER_PUSHPOP_STATE_SUPPORTED:INTERNAL=TRUE
 

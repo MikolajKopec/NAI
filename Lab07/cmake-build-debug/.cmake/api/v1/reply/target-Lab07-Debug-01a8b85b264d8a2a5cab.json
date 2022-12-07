@@ -60,7 +60,7 @@
 				{
 					"backtrace" : 3,
 					"isSystem" : true,
-					"path" : "C:/Users/mikol/Desktop/NAI/Lab07/opencv-4.x/cmake-build-debug"
+					"path" : "C:/Users/mikol/Desktop/NAI/Lab07/opencv-4.x/cmake-build-release"
 				},
 				{
 					"backtrace" : 3,
@@ -178,27 +178,27 @@
 			},
 			{
 				"backtrace" : 2,
-				"fragment" : "C:\\Users\\mikol\\Desktop\\NAI\\Lab07\\opencv-4.x\\cmake-build-debug\\lib\\libopencv_highgui460d.dll.a",
+				"fragment" : "C:\\Users\\mikol\\Desktop\\NAI\\Lab07\\opencv-4.x\\cmake-build-release\\lib\\libopencv_highgui460.dll.a",
 				"role" : "libraries"
 			},
 			{
 				"backtrace" : 2,
-				"fragment" : "C:\\Users\\mikol\\Desktop\\NAI\\Lab07\\opencv-4.x\\cmake-build-debug\\lib\\libopencv_videoio460d.dll.a",
+				"fragment" : "C:\\Users\\mikol\\Desktop\\NAI\\Lab07\\opencv-4.x\\cmake-build-release\\lib\\libopencv_videoio460.dll.a",
 				"role" : "libraries"
 			},
 			{
 				"backtrace" : 2,
-				"fragment" : "C:\\Users\\mikol\\Desktop\\NAI\\Lab07\\opencv-4.x\\cmake-build-debug\\lib\\libopencv_imgcodecs460d.dll.a",
+				"fragment" : "C:\\Users\\mikol\\Desktop\\NAI\\Lab07\\opencv-4.x\\cmake-build-release\\lib\\libopencv_imgcodecs460.dll.a",
 				"role" : "libraries"
 			},
 			{
 				"backtrace" : 2,
-				"fragment" : "C:\\Users\\mikol\\Desktop\\NAI\\Lab07\\opencv-4.x\\cmake-build-debug\\lib\\libopencv_imgproc460d.dll.a",
+				"fragment" : "C:\\Users\\mikol\\Desktop\\NAI\\Lab07\\opencv-4.x\\cmake-build-release\\lib\\libopencv_imgproc460.dll.a",
 				"role" : "libraries"
 			},
 			{
 				"backtrace" : 2,
-				"fragment" : "C:\\Users\\mikol\\Desktop\\NAI\\Lab07\\opencv-4.x\\cmake-build-debug\\lib\\libopencv_core460d.dll.a",
+				"fragment" : "C:\\Users\\mikol\\Desktop\\NAI\\Lab07\\opencv-4.x\\cmake-build-release\\lib\\libopencv_core460.dll.a",
 				"role" : "libraries"
 			},
 			{

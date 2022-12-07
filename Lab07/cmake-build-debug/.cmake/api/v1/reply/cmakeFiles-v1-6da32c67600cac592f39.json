@@ -146,10 +146,10 @@
 			"path" : "C:/Programy/CLion 2022.3/bin/cmake/win/share/cmake-3.24/Modules/CMakeCommonLanguageInclude.cmake"
 		},
 		{
-			"path" : "opencv-4.x/cmake-build-debug/OpenCVConfig-version.cmake"
+			"path" : "opencv-4.x/cmake-build-release/OpenCVConfig-version.cmake"
 		},
 		{
-			"path" : "opencv-4.x/cmake-build-debug/OpenCVConfig.cmake"
+			"path" : "opencv-4.x/cmake-build-release/OpenCVConfig.cmake"
 		},
 		{
 			"isCMake" : true,
@@ -162,7 +162,7 @@
 			"path" : "C:/Programy/CLion 2022.3/bin/cmake/win/share/cmake-3.24/Modules/FindPackageMessage.cmake"
 		},
 		{
-			"path" : "opencv-4.x/cmake-build-debug/OpenCVModules.cmake"
+			"path" : "opencv-4.x/cmake-build-release/OpenCVModules.cmake"
 		}
 	],
 	"kind" : "cmakeFiles",
