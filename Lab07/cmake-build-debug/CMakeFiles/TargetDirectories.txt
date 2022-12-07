@@ -1,0 +1,3 @@
+C:/Users/mikol/Desktop/NAI/Lab07/cmake-build-debug/CMakeFiles/Lab07.dir
+C:/Users/mikol/Desktop/NAI/Lab07/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/mikol/Desktop/NAI/Lab07/cmake-build-debug/CMakeFiles/rebuild_cache.dir
