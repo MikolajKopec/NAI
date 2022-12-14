@@ -1,3 +1,5 @@
 build/
 .vscode/
 opencv-4.x/
+.idea/
+nauka/
